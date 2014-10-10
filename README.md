@@ -1,4 +1,4 @@
-Teams-Scraper
-=============
+qhac-common
+===========
 
-A project to scrape the TEAMS gradebook system.
+Adding TEAMS gradebook support to QuickHac common.
