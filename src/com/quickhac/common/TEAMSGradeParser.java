@@ -73,7 +73,7 @@ public class TEAMSGradeParser {
 		// make semester parameters
 		final SemesterParams semParams = new SemesterParams();
 
-		// Set Semester Params Explicitly for TEAMS
+		//TODO These semester params are explicitly set for TEAMS
 		semParams.cyclesPerSemester = 3;
 		semParams.hasExams = true;
 		semParams.hasSemesterAverages = true;
@@ -429,6 +429,34 @@ public class TEAMSGradeParser {
 		public int cyclesPerSemester;
 		public boolean hasExams;
 		public boolean hasSemesterAverages;
+	}
+
+	public Element getCourseElement(String averagesHtml, Course course, int cycle) {
+		Document doc = Jsoup.parse(averagesHtml);
+		// Define Grade/Metadata Table
+		final Element $metadataTable = doc.getElementById("finalTablebotLeft1")
+				.getElementById("tableHeaderTable");
+		final Elements $metadataRows = $metadataTable.getElementsByTag("tr");
+		final Element $gradeTable = doc
+				.getElementById("finalTablebottomRight1").getElementById(
+						"tableHeaderTable");
+		final Elements $gradeRows = $gradeTable.getElementsByTag("tr");
+		int rownum = 0;
+		for (int i = 1; i < $metadataRows.size(); i++){
+			Elements $metadataCells = $metadataRows.get(i).getElementsByTag("td");
+			if(course.courseId.equals($metadataCells.get(0).text())){
+				rownum = i;
+				break;
+			}
+		}
+		//get the same row in the grades table
+		Elements $course = $gradeRows.get(rownum).getElementsByTag("td");
+		if (cycle < 3){
+			return $course.get(cycle-1);
+		}
+		else{
+			return $course.get(cycle+2);
+		}
 	}
 
 }

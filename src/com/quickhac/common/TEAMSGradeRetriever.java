@@ -6,8 +6,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
+
 import javax.net.ssl.SSLSocketFactory;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+import com.quickhac.common.data.ClassGrades;
+import com.quickhac.common.data.Course;
 
 public class TEAMSGradeRetriever {
 	public static String getAustinisdCookie(final String AISDuser,
@@ -63,16 +72,23 @@ public class TEAMSGradeRetriever {
 	}
 
 	public static void postTEAMSLogin(final String AISDuser,
-			final String AISDpass, final String CStoneCookie)
+			final String AISDpass, final String cookies)
 			throws UnknownHostException, IOException {
 		final String query = "userLoginId=" + AISDuser + "&userPassword=" + AISDpass;
 		postPageHTTPS("my-teams.austinisd.org", "/selfserve/SignOnLoginAction.do", new String[]{
-				"Cookie: " + CStoneCookie,
+				"Cookie: " + cookies,
 				"Accept: */*",
 				"User-Agent: QHAC"
 		}, query);
 	}
-	
+	public static ClassGrades getCycleClassGrades(Course course,int cycle, String averagesHtml,String cookies) throws UnknownHostException, IOException{
+		TEAMSGradeParser parser = new TEAMSGradeParser();
+		Element coursehtmlnode = parser.getCourseElement(averagesHtml,course,cycle);
+		String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").first().id(), "UTF-8");
+		String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookies);
+		//TODO hardcoded number of cycles
+		return parser.parseClassGrades(coursehtml, course.courseId, cycle < 3 ? 0:1  , cycle);
+	}
 	public static String getTEAMSPage(final String path,
 			final String gradeBookKey, String cookie) throws UnknownHostException, IOException {
 		return postPageHTTPS("my-teams.austinisd.org", path, new String[]{
