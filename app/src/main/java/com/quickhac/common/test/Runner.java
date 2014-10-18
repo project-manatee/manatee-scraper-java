@@ -1,35 +1,16 @@
 package com.quickhac.common.test;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import com.quickhac.common.TEAMSGradeParser;
 import com.quickhac.common.TEAMSGradeRetriever;
 import com.quickhac.common.data.ClassGrades;
 import com.quickhac.common.data.Course;
-import com.quickhac.common.util.Numeric;
 
 public class Runner {
 	public static void main(String args[]) throws IOException {
-		// Prompt user for username and password
-		final JLabel usernameLabel = new JLabel("Username:");
-		final JTextField usernameField = new JTextField();
-		final JLabel passwordLabel = new JLabel("Password:");
-		final JPasswordField passwordField = new JPasswordField();
-		JOptionPane.showConfirmDialog(null, new Object[] { usernameLabel,
-				usernameField, passwordLabel, passwordField }, "Login",
-				JOptionPane.OK_CANCEL_OPTION);
-		final String AISDuser =  URLEncoder.encode(usernameField.getText(), "UTF-8");
-		final String AISDpass =  URLEncoder.encode(new String(passwordField.getPassword()), "UTF-8");
+		final String AISDuser =  "";
+		final String AISDpass =  "";
 		
 		//////////////////////////////
 		

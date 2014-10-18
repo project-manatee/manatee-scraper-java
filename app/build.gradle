@@ -1,6 +1,15 @@
-apply plugin: 'java'
+apply plugin: 'android-library'
 
 dependencies {
     compile files('libs/httpclientandroidlib-1.1.2.jar')
     compile files('libs/jsoup-1.7.3.jar')
+}
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.0.0"
+
+    defaultConfig {
+        minSdkVersion 8
+        targetSdkVersion 21
+    }
 }
