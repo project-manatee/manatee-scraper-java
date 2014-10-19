@@ -5,6 +5,7 @@ import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONArray;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -134,8 +135,10 @@ public class TEAMSGradeParser {
 		return grades;
 	}
 
-	public StudentInfo parseStudentInfo(final String html) {
-		return district.parseStudentInfo(Jsoup.parse(html));
+	public String parseStudentInfoLocID(final String html) {
+		Document d = Jsoup.parse(html);
+        Element studentTable = d.getElementById("tableBodyTable");
+        return studentTable.getElementsByTag("tr").first().attributes().get("locid").toString();
 	}
 
 	Course parseCourse(final Element $metadataRow, Element $gradeRow,

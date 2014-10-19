@@ -1,6 +1,7 @@
 package com.quickhac.common.test;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Scanner;
 
 import com.quickhac.common.TEAMSGradeParser;
 import com.quickhac.common.TEAMSGradeRetriever;
@@ -9,8 +10,11 @@ import com.quickhac.common.data.Course;
 
 public class Runner {
 	public static void main(String args[]) throws IOException {
-		final String AISDuser =  "";
-		final String AISDpass =  "";
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Enter a username");
+		final String AISDuser =  scan.next();
+        System.out.println("Enter a password");
+        final String AISDpass = scan.next();
 		
 		//////////////////////////////
 		
@@ -18,18 +22,18 @@ public class Runner {
 		
 		//Get cookies
 		final String cstonecookie = TEAMSGradeRetriever.getAustinisdCookie(AISDuser, AISDpass);
-		final String teamscookie = TEAMSGradeRetriever.getTEAMSCookie(cstonecookie);
+		final String teamscookie = TEAMSGradeRetriever.getTEAMSCookie(cstonecookie,AISDuser);
 		
 		//Generate final cookie
 		final String finalcookie = teamscookie + ';' + cstonecookie;
 		
 		//POST to login to TEAMS
-		TEAMSGradeRetriever.postTEAMSLogin(AISDuser,AISDpass,finalcookie);
+		String userIdentification = TEAMSGradeRetriever.postTEAMSLogin(AISDuser,AISDpass,finalcookie);
 		
 		//Get "Report Card"
-		final String averageHtml = TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", finalcookie);
+		final String averageHtml = TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", finalcookie,AISDuser,userIdentification);
 		final Course[] studentCourses = p.parseAverages(averageHtml);
-		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[0], 1, averageHtml, finalcookie);
+		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[0], 1, averageHtml, finalcookie,AISDuser,userIdentification);
 //		/*Logic to get ClassGrades. TEAMS looks for a post request with the "A" tag id of a specific grade selected, 
 //		 * so we iterate through all the a tags we got above and send/store the parsed result one by one*/
 //		final ArrayList<ClassGrades> classGrades = new ArrayList<ClassGrades>();
