@@ -14,10 +14,10 @@ import org.jsoup.nodes.Element;
 
 import com.quickhac.common.data.ClassGrades;
 import com.quickhac.common.data.Course;
+import com.quickhac.common.districts.TEAMSUserType;
 
 public class TEAMSGradeRetriever {
     final static String LOGIN_ERR = "-1";
-    final static String studentLogin = "^s\\d{7}$";
 	public static String getAustinisdCookie(final String AISDuser,
 			final String AISDpass) throws  IOException {
 		final String query = "cn=" + AISDuser + "&%5Bpassword%5D=" + AISDpass;
@@ -45,24 +45,14 @@ public class TEAMSGradeRetriever {
 		return cstonecookie.split(";")[0];
 	}
 
-	public static String getTEAMSCookie(final String CStoneCookie, final String AISDuser)
+	public static String getTEAMSCookie(final String CStoneCookie, final TEAMSUserType userType)
 			throws  IOException {
 		final String query = "";
-        final String response;
-        if (AISDuser.matches(studentLogin)) {
-            response = postPageHTTPS("my-teams.austinisd.org", "/selfserve/EntryPointSignOnAction.do?parent=false", new String[]{
-                    "Cookie: " + CStoneCookie,
-                    "Accept: */*",
-                    "User-Agent: QHAC"
-            }, query);
-        }
-        else{
-            response = postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/EntryPointSignOnAction.do?parent=true", new String[]{
-                    "Cookie: " + CStoneCookie,
-                    "Accept: */*",
-                    "User-Agent: QHAC"
-            }, query);
-        }
+        final String response = postPageHTTPS(userType.teamsHost(), "/selfserve/EntryPointSignOnAction.do?parent=" + userType.isParent(), new String[]{
+                "Cookie: " + CStoneCookie,
+                "Accept: */*",
+                "User-Agent: QHAC"
+        }, query);
 		String jcookie = null;
 
 		for (String line : response.split("\n")) {
@@ -80,55 +70,44 @@ public class TEAMSGradeRetriever {
 		return jcookie.split(";")[0];
 	}
 
-	public static String postTEAMSLogin(final String AISDuser,
-			final String AISDpass, final String cookies)
+	public static String postTEAMSLogin(final String user,
+			final String pass, final String cookies, final TEAMSUserType userType)
 			throws  IOException {
-        final String query = "userLoginId=" + AISDuser + "&userPassword=" + AISDpass;
-        if (AISDuser.matches(studentLogin)) {
-            postPageHTTPS("my-teams.austinisd.org", "/selfserve/SignOnLoginAction.do", new String[]{
-                    "Cookie: " + cookies,
-                    "Accept: */*",
-                    "User-Agent: QHAC"
-            }, query);
-            return "";
-        }
-        else{
-            String toParse = postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/SignOnLoginAction.do", new String[]{
-                    "Cookie: " + cookies,
-                    "Accept: */*",
-                    "User-Agent: QHAC"
-            }, query);
+        final String query = "userLoginId=" + user + "&userPassword=" + pass;
+
+        final String response = postPageHTTPS(userType.teamsHost(), "/selfserve/SignOnLoginAction.do", new String[]{
+                "Cookie: " + cookies,
+                "Accept: */*",
+                "User-Agent: QHAC"
+        }, query);
+
+        if (userType.isParent()) {
             TEAMSGradeParser parser = new TEAMSGradeParser();
+            final String studentInfoLocID = parser.parseStudentInfoLocID(response);
             //TODO Hardcoded user index 0 for now
             postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
                     "Cookie: " + cookies,
                     "Accept: */*",
                     "User-Agent: QHAC"
-            }, "selectedIndexId=0&studentLocId="+ parser.parseStudentInfoLocID(toParse) + "&selectedTable=table");
-            return "&selectedIndexId=0&studentLocId="+ parser.parseStudentInfoLocID(toParse) + "&selectedTable=table";
+            }, "selectedIndexId=0&studentLocId=" + studentInfoLocID + "&selectedTable=table");
+            return "&selectedIndexId=0&studentLocId=" + studentInfoLocID + "&selectedTable=table";
+        } else {
+            return "";
         }
 	}
-	public static ClassGrades getCycleClassGrades(Course course,int cycle, String averagesHtml,String cookies,String AISDuser, String userIdentification) throws  IOException{
+	public static ClassGrades getCycleClassGrades(Course course,int cycle, String averagesHtml,String cookies, final TEAMSUserType userType, String userIdentification) throws  IOException{
 		TEAMSGradeParser parser = new TEAMSGradeParser();
 		Element coursehtmlnode = parser.getCourseElement(averagesHtml,course,cycle);
 		String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").first().id(), "UTF-8");
-		String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookies,AISDuser, userIdentification);
+		String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookies, userType, userIdentification);
 		//TODO hardcoded number of cycles
 		return parser.parseClassGrades(coursehtml, course.courseId, cycle < 3 ? 0:1  , cycle);
 	}
 	public static String getTEAMSPage(final String path,
-			final String gradeBookKey, String cookie,String AISDuser, String userIdentification) throws IOException {
-        if (AISDuser.matches(studentLogin)) {
-
-            return postPageHTTPS("my-teams.austinisd.org", path, new String[]{
-                    "Cookie: " + cookie,
-            }, gradeBookKey);
-        }
-        else{
-            return postPageHTTPS("my-teamsselfserve.austinisd.org", path, new String[]{
-                    "Cookie: " + cookie,
-            }, gradeBookKey + userIdentification);
-        }
+			final String gradeBookKey, String cookie, final TEAMSUserType userType, String userIdentification) throws IOException {
+        return postPageHTTPS(userType.teamsHost(), path, new String[]{
+                "Cookie: " + cookie,
+        }, gradeBookKey + userIdentification);
     }
 	
 	public static String postPageHTTPS(final String host, final String path, final String[] headers, final String postData) throws  IOException {
