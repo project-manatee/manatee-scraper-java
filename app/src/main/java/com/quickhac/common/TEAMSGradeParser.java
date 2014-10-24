@@ -107,6 +107,10 @@ public class TEAMSGradeParser {
 				.first().getElementsByTag("tr").get(2).getElementsByTag("td");
 
 		// parse category average
+        if($gradeInfo.size() < 4){
+            //No grades yet
+            return null;
+        }
 		final Matcher averageMatcher = NUMERIC_REGEX.matcher($gradeInfo.get(3)
 				.text());
 		averageMatcher.find();
