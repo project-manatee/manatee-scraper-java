@@ -98,7 +98,7 @@ public class TEAMSGradeRetriever {
 	public static ClassGrades getCycleClassGrades(Course course,int cycle, String averagesHtml,String cookies, final TEAMSUserType userType, String userIdentification) throws  IOException{
 		TEAMSGradeParser parser = new TEAMSGradeParser();
 		Element coursehtmlnode = parser.getCourseElement(averagesHtml,course,cycle);
-		String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").first().id(), "UTF-8");
+		String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").get(0).id(), "UTF-8");
 		String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookies, userType, userIdentification);
 		//TODO hardcoded number of cycles
 		return parser.parseClassGrades(coursehtml, course.courseId, cycle < 3 ? 0:1  , cycle);

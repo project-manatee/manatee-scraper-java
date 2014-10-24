@@ -44,7 +44,7 @@ public class Runner {
 		//Get "Report Card"
 		final String averageHtml = TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", finalcookie, userType, userIdentification);
 		final Course[] studentCourses = p.parseAverages(averageHtml);
-		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[0], 1, averageHtml, finalcookie, userType, userIdentification);
+		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[1], 1, averageHtml, finalcookie, userType, userIdentification);
 //		/*Logic to get ClassGrades. TEAMS looks for a post request with the "A" tag id of a specific grade selected, 
 //		 * so we iterate through all the a tags we got above and send/store the parsed result one by one*/
 //		final ArrayList<ClassGrades> classGrades = new ArrayList<ClassGrades>();

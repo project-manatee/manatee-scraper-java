@@ -455,7 +455,7 @@ public class TEAMSGradeParser {
 		//get the same row in the grades table
 		Elements $course = $gradeRows.get(rownum).getElementsByTag("td");
 		if (cycle < 3){
-			return $course.get(cycle-1);
+			return $course.get(cycle);
 		}
 		else{
 			return $course.get(cycle+2);
