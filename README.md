@@ -1,4 +1,4 @@
-Teams-Scraper
+Manatee-Scraper
 =============
 
 A project to scrape the TEAMS gradebook system.
