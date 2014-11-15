@@ -18,9 +18,6 @@ import com.quickhac.common.data.Course;
 import com.quickhac.common.data.Cycle;
 import com.quickhac.common.data.GradeValue;
 import com.quickhac.common.data.Semester;
-import com.quickhac.common.data.StudentInfo;
-import com.quickhac.common.districts.GradeSpeedDistrict;
-import com.quickhac.common.util.Base64;
 import com.quickhac.common.util.Hash;
 import com.quickhac.common.util.Numeric;
 
@@ -57,7 +54,6 @@ public class TEAMSGradeParser {
 	static final Pattern ALT_CATEGORY_NAME_REGEX = // IB-MVPS grading
 	Pattern.compile("^(.*) - Each assignment counts (\\d+)");
 
-	private GradeSpeedDistrict district;
 
 	public Course[] parseAverages(final String html) {
 		// set up DOM for parsing
@@ -394,21 +390,6 @@ public class TEAMSGradeParser {
 		assignment.note = note;
 		assignment.extraCredit = extraCredit;
 		return assignment;
-	}
-
-	String findCourseNum(final Elements $cells) {
-		// loop through the cells until we find one with a URL hash we can parse
-		for (int i = district.gradesColOffset(); i < $cells.size(); i++) {
-			Elements $links = $cells.get(i).getElementsByTag("a");
-			if ($links.size() != 0) // if we found a link, parse the data hash
-				return getCourseIdFromHash( // get the course number from the
-											// decoded hash
-				Base64.decode(decodeURIComponent( // decode the data attribute
-				$links.first().attr("href").split("data=")[1] // get the data
-																// attribute
-				)));
-		}
-		return null;
 	}
 
 	String getCourseIdFromHash(String hash) {

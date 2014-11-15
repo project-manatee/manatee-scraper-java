@@ -24,8 +24,8 @@ public class Assignment {
 			return ptsEarned.toString();
 		
 		final StringBuilder pts = new StringBuilder();
-		
-		pts.append(Numeric.doubleToPrettyString(ptsEarned.value_d));
+		//Account for when ptsPossible is not 100
+		pts.append(Numeric.doubleToPrettyString(Math.round(ptsEarned.value_d*(ptsPossible/100))));
 		
 		if (ptsPossible != 100)
 			pts.append("/" + Numeric.doubleToPrettyString(ptsPossible));
