@@ -1,5 +1,7 @@
 package com.quickhac.common;
 
+import android.util.Log;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.regex.Matcher;
@@ -99,40 +101,60 @@ public class TEAMSGradeParser {
 		final Elements $categories = $categoriesDiv.children();
 		//Split <br> for category info later
 		$categories.select("br").append("split");
-		final Elements $gradeInfo = doc.getElementsByClass("studentAttendance")
-				.first().getElementsByTag("tr").get(2).getElementsByTag("td");
+        Log.d("com.manateams.android", cycleIndex + "");
 
-		// parse category average
-        if($gradeInfo.size() < 4){
-            //No grades yet
-            return null;
+        // parse categories
+        final Category[] cats = new Category[$categories.size()];
+        for (int i = 0; i < cats.length; i++)
+            cats[i] = parseCategory(
+                    $categories.get(i).getElementsByTag("div").first(),
+                    courseId);
+
+        //Workaround if $gradeinfo not returned
+        Elements $gradeInfo = null;
+        if(doc.getElementsByClass("studentAttendance")
+                .first().getElementsByTag("tr").size() > 2) {
+            $gradeInfo = doc.getElementsByClass("studentAttendance")
+                    .first().getElementsByTag("tr").get(2).getElementsByTag("td");
+            // parse category average
+            if($gradeInfo != null && $gradeInfo.size() < 4){
+                //No grades yet
+                return null;
+            }
+            final Matcher averageMatcher = NUMERIC_REGEX.matcher($gradeInfo.get(3)
+                    .text());
+            boolean averageMatchSuccess = averageMatcher.find();
+            // parse class period
+            final Matcher periodMatcher = NUMERIC_REGEX.matcher($gradeInfo.get(1)
+                    .text());
+            periodMatcher.find();
+            // return class grades
+            final ClassGrades grades = new ClassGrades();
+            // Get name from CLASS ID - Name format
+            grades.title = $gradeInfo.get(0).text().split("-")[1].trim();
+            grades.urlHash = "";
+            grades.period = Integer.valueOf(periodMatcher.group(0));
+            grades.semesterIndex = semesterIndex;
+            grades.cycleIndex = cycleIndex;
+            //If we can't find an average, set it to -1
+            if (!averageMatchSuccess)
+                grades.average = -1;
+            else
+                grades.average = Integer.valueOf(averageMatcher.group(0));
+            grades.categories = cats;
+            return grades;
         }
-		final Matcher averageMatcher = NUMERIC_REGEX.matcher($gradeInfo.get(3)
-				.text());
-		averageMatcher.find();
-
-		// parse class period
-		final Matcher periodMatcher = NUMERIC_REGEX.matcher($gradeInfo.get(1)
-				.text());
-		periodMatcher.find();
-		// parse categories
-		final Category[] cats = new Category[$categories.size()];
-		for (int i = 0; i < cats.length; i++)
-			cats[i] = parseCategory(
-					$categories.get(i).getElementsByTag("div").first(),
-					courseId);
-
-		// return class grades
-		final ClassGrades grades = new ClassGrades();
-		// Get name from CLASS ID - Name format
-		grades.title = $gradeInfo.get(0).text().split("-")[1].trim();
-		grades.urlHash = "";
-		grades.period = Integer.valueOf(periodMatcher.group(0));
-		grades.semesterIndex = semesterIndex;
-		grades.cycleIndex = cycleIndex;
-		grades.average = Integer.valueOf(averageMatcher.group(0));
-		grades.categories = cats;
-		return grades;
+        else{
+            final ClassGrades grades = new ClassGrades();
+            grades.title = "Default";
+            grades.urlHash = "";
+            grades.period = -1;
+            grades.semesterIndex = semesterIndex;
+            grades.cycleIndex = cycleIndex;
+            grades.average = -1;
+            grades.categories = cats;
+            return grades;
+        }
 	}
 
 	public String parseStudentInfoLocID(final String html) {

@@ -15,9 +15,8 @@ public class Assignment {
 	public boolean extraCredit;
 	
 	public String pointsString() {
-		if (ptsEarned == null)
+		if ( ptsEarned == null || ptsEarned.value == -1)
 			return "-";
-		
 		// letter grades + weighted/non-100 = ????
 		// don't even bother handling that case
 		if (ptsEarned.type == GradeValue.TYPE_LETTER)
@@ -26,7 +25,6 @@ public class Assignment {
 		final StringBuilder pts = new StringBuilder();
 		//Account for when ptsPossible is not 100
 		pts.append(Numeric.doubleToPrettyString(Math.round(ptsEarned.value_d*(ptsPossible/100))));
-		
 		if (ptsPossible != 100)
 			pts.append("/" + Numeric.doubleToPrettyString(ptsPossible));
 		
