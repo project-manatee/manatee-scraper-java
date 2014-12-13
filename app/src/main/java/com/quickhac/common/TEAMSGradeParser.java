@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,12 +105,20 @@ public class TEAMSGradeParser {
         Log.d("com.manateams.android", cycleIndex + "");
 
         // parse categories
-        final Category[] cats = new Category[$categories.size()];
-        for (int i = 0; i < cats.length; i++)
-            cats[i] = parseCategory(
+        final ArrayList<Category> cats = new ArrayList<Category>();
+        for (int i = 0; i < $categories.size(); i++)
+            cats.add( parseCategory(
                     $categories.get(i).getElementsByTag("div").first(),
-                    courseId);
-
+                    courseId));
+        for (int i = 0; i < cats.size();i++){
+            Category c = cats.get(i);
+            if(c == null || c.assignments == null){
+                cats.remove(c);
+                i--;
+            }
+        }
+        Category catfinal[] = new Category[cats.size()];
+        catfinal = cats.toArray(catfinal);
         //Workaround if $gradeinfo not returned
         Elements $gradeInfo = null;
         if(doc.getElementsByClass("studentAttendance")
@@ -141,7 +150,7 @@ public class TEAMSGradeParser {
                 grades.average = -1;
             else
                 grades.average = Integer.valueOf(averageMatcher.group(0));
-            grades.categories = cats;
+            grades.categories = catfinal;
             return grades;
         }
         else{
@@ -152,7 +161,7 @@ public class TEAMSGradeParser {
             grades.semesterIndex = semesterIndex;
             grades.cycleIndex = cycleIndex;
             grades.average = -1;
-            grades.categories = cats;
+            grades.categories = catfinal;
             return grades;
         }
 	}
@@ -284,25 +293,38 @@ public class TEAMSGradeParser {
 	}
 
 	Category parseCategory(final Element $cat, final String courseId) {
-		// Try to retrieve a weight for each category. Since we have to support
-		// IB-MYP grading,
-		// category weights are not guaranteed to add up to 100%. However,
-		// regardless of which
-		// weighting scheme we are using, grade calculations should be able to
-		// use the weights
-		// as they are parsed below.
-		//Get category info out of <br> tags
-		
-		//0=Title, 1=Average, 2=Weight
-		String[] $catInfo = $cat.getElementsByTag("h1").text().split("split");
-		// Some teachers don't put their assignments out of 100 points. Check if
-		// this is the case.
-		final boolean is100Pt = $cat.select("td.AssignmentPointsPossible")
-				.size() == 0;
+        // Try to retrieve a weight for each category. Since we have to support
+        // IB-MYP grading,
+        // category weights are not guaranteed to add up to 100%. However,
+        // regardless of which
+        // weighting scheme we are using, grade calculations should be able to
+        // use the weights
+        // as they are parsed below.
+        //Get category info out of <br> tags
+
+        //0=Title, 1=Average, 2=Weight
+        String[] $catInfo;
+        try{
+            $catInfo = $cat.getElementsByTag("h1").text().split("split");
+        }
+        catch (Exception e){
+            return null;
+        }
+        // Some teachers don't put their assignments out of 100 points. Check if
+        // this is the case.
+        final boolean is100Pt = $cat.select("td.AssignmentPointsPossible")
+            .size() == 0;
 		String categoryTableId = ($catInfo[0].trim().replace(" ", "_") + "BodyTable").trim();
 		// Find all of the assignments using category name since assginment table id is CategoryName + "BodyTable"
-		final Elements $assignments = $cat.getElementById(categoryTableId).getElementsByTag("tr");
-		
+        //TODO Ghost category sometimes inserted
+		Elements $assignments;
+        try{
+             $assignments = $cat.getElementById(categoryTableId).getElementsByTag("tr");
+        }
+        catch (Exception E){
+            return null;
+        }
+
 		// parse category average
 		final Matcher averageMatcher = NUMERIC_REGEX.matcher($catInfo[1]);
 
