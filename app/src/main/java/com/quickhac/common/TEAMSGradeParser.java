@@ -102,7 +102,6 @@ public class TEAMSGradeParser {
 		final Elements $categories = $categoriesDiv.children();
 		//Split <br> for category info later
 		$categories.select("br").append("split");
-        Log.d("com.manateams.android", cycleIndex + "");
 
         // parse categories
         final ArrayList<Category> cats = new ArrayList<Category>();
@@ -164,12 +163,6 @@ public class TEAMSGradeParser {
             grades.categories = catfinal;
             return grades;
         }
-	}
-
-	public String parseStudentInfoLocID(final String html) {
-		Document d = Jsoup.parse(html);
-        Element studentTable = d.getElementById("tableBodyTable");
-        return studentTable.getElementsByTag("tr").first().attributes().get("locid").toString();
 	}
 
 	Course parseCourse(final Element $metadataRow, Element $gradeRow,
@@ -456,7 +449,25 @@ public class TEAMSGradeParser {
 		return parent.getElementsByClass(klass).first().text();
 	}
 
-	class SemesterParams {
+    public String parseStudentInfoLocID(int idIndex,final String html) {
+        Document d = Jsoup.parse(html);
+        Element studentTable = d.getElementById("tableBodyTable");
+        return studentTable.getElementsByTag("tr").get(idIndex).attributes().get("locid").toString();
+    }
+    public int parseStudentInfoIndex(String studentID,final String html) {
+        Document d = Jsoup.parse(html);
+        Element studentTable = d.getElementById("tableBodyTable");
+        Elements possibleStudents = studentTable.getElementsByTag("tr");
+        for (int i = 0; i < possibleStudents.size();i++){
+            String localStudentID = possibleStudents.get(i).getElementsByTag("td").first().text();
+            if(localStudentID.equals(studentID)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    class SemesterParams {
 		public int semesters;
 		public int cyclesPerSemester;
 		public boolean hasExams;

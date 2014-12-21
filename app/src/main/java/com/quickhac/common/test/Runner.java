@@ -19,7 +19,8 @@ public class Runner {
 		final String AISDuser = scan.next();
         System.out.println("Enter a password");
         final String AISDpass = scan.next();
-
+        System.out.println("Enter a student id");
+        final String AISDstudentid = scan.next();
         final TEAMSUserType userType;
         if (AISDuser.matches("^s\\d{7}$")) {
             userType = new AustinISDStudent();
@@ -39,13 +40,15 @@ public class Runner {
 		final String finalcookie = teamscookie + ';' + cstonecookie;
 		
 		//POST to login to TEAMS
-		String userIdentification = TEAMSGradeRetriever.postTEAMSLogin(AISDuser,AISDpass,finalcookie, userType);
+		String userIdentification = TEAMSGradeRetriever.postTEAMSLogin(AISDuser,AISDpass,AISDstudentid,finalcookie, userType);
 		
 		//Get "Report Card"
 		final String averageHtml = TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", finalcookie, userType, userIdentification);
 		final Course[] studentCourses = p.parseAverages(averageHtml);
 		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[1], 1, averageHtml, finalcookie, userType, userIdentification);
-//		/*Logic to get ClassGrades. TEAMS looks for a post request with the "A" tag id of a specific grade selected, 
+        System.out.println(studentCourses[0].title);
+        System.out.println(c.average);
+//		/*Logic to get ClassGrades. TEAMS looks for a post request with the "A" tag id of a specific grade selected,
 //		 * so we iterate through all the a tags we got above and send/store the parsed result one by one*/
 //		final ArrayList<ClassGrades> classGrades = new ArrayList<ClassGrades>();
 //		final Elements avalues = Jsoup.parse(averageHtml).getElementById("finalTablebottomRight1").getElementsByTag("a");

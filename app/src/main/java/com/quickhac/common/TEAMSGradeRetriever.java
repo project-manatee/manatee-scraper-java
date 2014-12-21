@@ -17,7 +17,7 @@ import com.quickhac.common.data.Course;
 import com.quickhac.common.districts.TEAMSUserType;
 
 public class TEAMSGradeRetriever {
-    final static String LOGIN_ERR = "-1";
+    final public static String LOGIN_ERR = "-1";
 	public static String getAustinisdCookie(final String AISDuser,
 			final String AISDpass) throws  IOException {
 		final String query = "cn=" + AISDuser + "&%5Bpassword%5D=" + AISDpass;
@@ -71,7 +71,7 @@ public class TEAMSGradeRetriever {
 	}
 
 	public static String postTEAMSLogin(final String user,
-			final String pass, final String cookies, final TEAMSUserType userType)
+			final String pass, String studentId,final String cookies, final TEAMSUserType userType)
 			throws  IOException {
         final String query = "userLoginId=" + user + "&userPassword=" + pass;
 
@@ -83,14 +83,28 @@ public class TEAMSGradeRetriever {
 
         if (userType.isParent()) {
             TEAMSGradeParser parser = new TEAMSGradeParser();
-            final String studentInfoLocID = parser.parseStudentInfoLocID(response);
-            //TODO Hardcoded user index 0 for now
-            postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
-                    "Cookie: " + cookies,
-                    "Accept: */*",
-                    "User-Agent: QHAC"
-            }, "selectedIndexId=0&studentLocId=" + studentInfoLocID + "&selectedTable=table");
-            return "&selectedIndexId=0&studentLocId=" + studentInfoLocID + "&selectedTable=table";
+            try{
+                final int idIndex = parser.parseStudentInfoIndex(studentId,response);
+                String studentInfoLocID = "";
+                if(idIndex != -1){
+                    studentInfoLocID = parser.parseStudentInfoLocID(idIndex,response);
+                }
+                else{
+                    System.out.println("No student found with supplied student id!");
+                    return LOGIN_ERR;
+                }
+                //TODO Hardcoded user index 0 for now
+                postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
+                        "Cookie: " + cookies,
+                        "Accept: */*",
+                        "User-Agent: QHAC"
+                }, "selectedIndexId=" + idIndex + "&studentLocId=" + studentInfoLocID + "&selectedTable=table");
+                return "&selectedIndexId=" + idIndex + "&studentLocId=" + studentInfoLocID + "&selectedTable=table";
+            }
+            catch (Exception e){
+                return LOGIN_ERR;
+            }
+
         } else {
             return "";
         }
