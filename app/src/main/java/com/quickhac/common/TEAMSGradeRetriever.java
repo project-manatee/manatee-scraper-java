@@ -20,7 +20,7 @@ public class TEAMSGradeRetriever {
     final public static String LOGIN_ERR = "-1";
 	public static String getAustinisdCookie(final String AISDuser,
 			final String AISDpass) throws  IOException {
-		final String query = "cn=" + AISDuser + "&%5Bpassword%5D=" + AISDpass;
+		final String query = "cn=" + URLEncoder.encode(AISDuser,"UTF-8") + "&%5Bpassword%5D=" + URLEncoder.encode(AISDpass,"UTF-8");
 		
 		final String response = postPageHTTPS("my.austinisd.org", "/WebNetworkAuth/", new String[]{
 				"User-Agent: QHAC",
@@ -73,7 +73,7 @@ public class TEAMSGradeRetriever {
 	public static String postTEAMSLogin(final String user,
 			final String pass, String studentId,final String cookies, final TEAMSUserType userType)
 			throws  IOException {
-        final String query = "userLoginId=" + user + "&userPassword=" + pass;
+        final String query = "userLoginId=" + URLEncoder.encode(user,"UTF-8") + "&userPassword=" + URLEncoder.encode(pass,"UTF-8");
 
         final String response = postPageHTTPS(userType.teamsHost(), "/selfserve/SignOnLoginAction.do", new String[]{
                 "Cookie: " + cookies,
