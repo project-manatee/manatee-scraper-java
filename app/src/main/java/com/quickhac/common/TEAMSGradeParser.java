@@ -120,7 +120,8 @@ public class TEAMSGradeParser {
         catfinal = cats.toArray(catfinal);
         //Workaround if $gradeinfo not returned
         Elements $gradeInfo = null;
-        if(doc.getElementsByClass("studentAttendance")
+        if(doc.getElementsByClass("studentAttendance") != null && doc.getElementsByClass("studentAttendance")
+                .first() != null && doc.getElementsByClass("studentAttendance")
                 .first().getElementsByTag("tr").size() > 2) {
             $gradeInfo = doc.getElementsByClass("studentAttendance")
                     .first().getElementsByTag("tr").get(2).getElementsByTag("td");
