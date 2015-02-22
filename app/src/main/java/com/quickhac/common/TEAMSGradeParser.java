@@ -56,7 +56,7 @@ public class TEAMSGradeParser {
 			.compile("^(.*) - (\\d+)%$");
 	static final Pattern ALT_CATEGORY_NAME_REGEX = // IB-MVPS grading
 	Pattern.compile("^(.*) - Each assignment counts (\\d+)");
-
+    static final Pattern ASSIGNMENT_PTS_EARNED_PARSER = Pattern.compile("^(.*?)\\(.*$");
 
 	public Course[] parseAverages(final String html) {
 		// set up DOM for parsing
@@ -358,7 +358,14 @@ public class TEAMSGradeParser {
 			note = $cells.get(7).text();
 		}
 		catch (Exception e){note = "";}
-		final String ptsEarned = $cells.get(1).text();
+        Matcher ptsMatcher = ASSIGNMENT_PTS_EARNED_PARSER.matcher($cells.get(1).text());
+        String ptsEarned = "";
+        if (ptsMatcher.find()){
+            ptsEarned = ptsMatcher.group(1);
+        }
+        else {
+            ptsEarned = $cells.get(1).text();
+        }
 		//TODO: Very weird that we have to catch an exception here... but sometimes cell value is "100 2000"
 		int ptsPossNum = 100;
 		try{
