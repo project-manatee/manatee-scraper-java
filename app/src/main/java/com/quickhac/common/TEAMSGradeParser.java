@@ -5,6 +5,9 @@ import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +60,11 @@ public class TEAMSGradeParser {
 	static final Pattern ALT_CATEGORY_NAME_REGEX = // IB-MVPS grading
 	Pattern.compile("^(.*) - Each assignment counts (\\d+)");
     static final Pattern ASSIGNMENT_PTS_EARNED_PARSER = Pattern.compile("^(.*?)\\(.*$");
-
+    public static Course[] clean(final Course[] v) {
+        List<Course> list = new ArrayList<Course>(Arrays.asList(v));
+        list.removeAll(Collections.singleton(null));
+        return list.toArray(new Course[list.size()]);
+    }
 	public Course[] parseAverages(final String html) {
 		// set up DOM for parsing
 		final Document doc = Jsoup.parse(html);
@@ -88,7 +95,7 @@ public class TEAMSGradeParser {
 					$gradeRows.get(i), semParams);
 		}
 
-		return courses;
+		return clean(courses);
 	}
 
 	public ClassGrades parseClassGrades(final String html,
@@ -168,52 +175,57 @@ public class TEAMSGradeParser {
 
 	Course parseCourse(final Element $metadataRow, Element $gradeRow,
 			final SemesterParams semParams) {
-		// find the cells in this row
-		final Elements $metadataCells = $metadataRow.getElementsByTag("td");
-		final Elements $gradeCells = $gradeRow.getElementsByTag("td");
+        try {
+            // find the cells in this row
+            final Elements $metadataCells = $metadataRow.getElementsByTag("td");
+            final Elements $gradeCells = $gradeRow.getElementsByTag("td");
 
-		// find the teacher name and email
-		final Element $teacherCell = $metadataCells.get(2);
+            // find the teacher name and email
+            final Element $teacherCell = $metadataCells.get(2);
 
-		// get the course number
-		final String courseId = $metadataCells.get(0).text();
+            // get the course number
+            final String courseId = $metadataCells.get(0).text();
 
-		// parse semesters
-		final Semester[] semesters = new Semester[semParams.semesters];
-		for (int i = 0; i < semParams.semesters; i++) {
-			// get cells for the semester
-			final Element[] $semesterCells = new Element[semParams.cyclesPerSemester];
-			final int cellOffset = i
-					* (semParams.cyclesPerSemester
-							+ (semParams.hasExams ? 1 : 0) + (semParams.hasSemesterAverages ? 1
-								: 0));
+            // parse semesters
+            final Semester[] semesters = new Semester[semParams.semesters];
+            for (int i = 0; i < semParams.semesters; i++) {
+                // get cells for the semester
+                final Element[] $semesterCells = new Element[semParams.cyclesPerSemester];
+                final int cellOffset = i
+                        * (semParams.cyclesPerSemester
+                        + (semParams.hasExams ? 1 : 0) + (semParams.hasSemesterAverages ? 1
+                        : 0));
 
-			// find the cycle cells for this semester
-			for (int j = 0; j < $semesterCells.length; j++)
-				$semesterCells[j] = $gradeCells.get(cellOffset + j);
+                // find the cycle cells for this semester
+                for (int j = 0; j < $semesterCells.length; j++)
+                    $semesterCells[j] = $gradeCells.get(cellOffset + j);
 
-			// exam cell is after that
-			final Element $examCell = semParams.hasExams ? $gradeCells
-					.get(cellOffset + semParams.cyclesPerSemester) : null;
+                // exam cell is after that
+                final Element $examCell = semParams.hasExams ? $gradeCells
+                        .get(cellOffset + semParams.cyclesPerSemester) : null;
 
-			// and semester cell is after that
-			final Element $semAvgCell = semParams.hasSemesterAverages ? $gradeCells
-					.get(cellOffset + semParams.cyclesPerSemester
-							+ (semParams.hasExams ? 1 : 0)) : null;
+                // and semester cell is after that
+                final Element $semAvgCell = semParams.hasSemesterAverages ? $gradeCells
+                        .get(cellOffset + semParams.cyclesPerSemester
+                                + (semParams.hasExams ? 1 : 0)) : null;
 
-			// parse the semester
-			semesters[i] = parseSemester($semesterCells, $examCell,
-					$semAvgCell, i, semParams);
-		}
+                // parse the semester
+                semesters[i] = parseSemester($semesterCells, $examCell,
+                        $semAvgCell, i, semParams);
+            }
 
-		// create the course
-		final Course course = new Course();
-		course.title = $metadataCells.get(3).text();
-		course.teacherName = $teacherCell.text();
-		course.teacherEmail = "";
-		course.courseId = courseId;
-		course.semesters = semesters;
-		return course;
+            // create the course
+            final Course course = new Course();
+            course.title = $metadataCells.get(3).text();
+            course.teacherName = $teacherCell.text();
+            course.teacherEmail = "";
+            course.courseId = courseId;
+            course.semesters = semesters;
+            return course;
+        }
+        catch(Exception e){
+            return null;
+        }
 	}
 
 	Semester parseSemester(Element[] $cycles, Element $exam, Element $semAvg,

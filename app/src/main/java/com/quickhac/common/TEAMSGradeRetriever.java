@@ -2,10 +2,14 @@ package com.quickhac.common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -161,4 +165,38 @@ public class TEAMSGradeRetriever {
 		}
 		
 	}
+    public static String getHttpPage(String urlin) throws IOException {
+        URL url = new URL(urlin);
+        URLConnection conn = url.openConnection();
+
+        HttpURLConnection httpConn = (HttpURLConnection) conn;
+        httpConn.setAllowUserInteraction(false);
+        httpConn.setInstanceFollowRedirects(true);
+        httpConn.setRequestMethod("GET");
+        httpConn.connect();
+
+        InputStream is = httpConn.getInputStream();
+        return convertinputStreamToString(is);
+
+    }
+    public static String convertinputStreamToString(InputStream ists)
+            throws IOException {
+        if (ists != null) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+
+            try {
+                BufferedReader r1 = new BufferedReader(new InputStreamReader(
+                        ists, "UTF-8"));
+                while ((line = r1.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+            } finally {
+                ists.close();
+            }
+            return sb.toString();
+        } else {
+            return "";
+        }
+    }
 }
