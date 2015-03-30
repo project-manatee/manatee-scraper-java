@@ -24,7 +24,7 @@ import com.quickhac.common.data.Course;
 import com.quickhac.common.districts.TEAMSUserType;
 
 public class TEAMSGradeRetriever {
-    final public static String LOGIN_ERR = "-1";
+    final public static String LOGIN_ERR = null;
 	public static String getAustinisdCookie(final String AISDuser,
 			final String AISDpass) throws  IOException {
 		final String query = "cn=" + URLEncoder.encode(AISDuser,"UTF-8") + "&%5Bpassword%5D=" + URLEncoder.encode(AISDpass,"UTF-8");
@@ -77,7 +77,7 @@ public class TEAMSGradeRetriever {
 	}
 
 	public static String postTEAMSLogin(final String user,
-			final String pass, String studentId,final String cookies, final TEAMSUserType userType)
+			final String pass, final String studentId,final String cookies, final TEAMSUserType userType)
 			throws  IOException {
         final String query = "userLoginId=" + URLEncoder.encode(user,"UTF-8") + "&userPassword=" + URLEncoder.encode(pass,"UTF-8");
 

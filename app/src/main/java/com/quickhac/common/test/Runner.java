@@ -22,7 +22,7 @@ public class Runner {
         System.out.println("Enter a student id");
         final String AISDstudentid = scan.next();
         final TEAMSUserType userType;
-        if (AISDuser.matches("^s\\d{7}$")) {
+        if (AISDuser.matches("^[sS]\\d{6,8}\\d?$")) {
             userType = new AustinISDStudent();
         } else {
             userType = new AustinISDParent();
