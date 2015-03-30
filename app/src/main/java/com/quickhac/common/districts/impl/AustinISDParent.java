@@ -8,7 +8,7 @@ import com.quickhac.common.districts.TEAMSUserType;
 public class AustinISDParent implements TEAMSUserType {
     @Override
     public String teamsHost() {
-        return "my-teamsselfserve.austinisd.org";
+        return "grades.austinisd.org";
     }
 
     @Override

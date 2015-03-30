@@ -1,16 +1,19 @@
 package com.quickhac.common;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -55,10 +58,9 @@ public class TEAMSGradeRetriever {
         final String response = postPageHTTPS(userType.teamsHost(), "/selfserve/EntryPointSignOnAction.do?parent=" + userType.isParent(), new String[]{
                 "Cookie: " + CStoneCookie,
                 "Accept: */*",
-                "User-Agent: QHAC"
+                "User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
         }, query);
 		String jcookie = null;
-
 		for (String line : response.split("\n")) {
 			if (line.startsWith("Set-Cookie: JSESSIONID=")) {
 				jcookie = line.substring(12);
@@ -88,17 +90,18 @@ public class TEAMSGradeRetriever {
         if (userType.isParent()) {
             TEAMSGradeParser parser = new TEAMSGradeParser();
             try{
-                final int idIndex = parser.parseStudentInfoIndex(studentId,response);
+                String chooseUser = getTEAMSPage("/selfserve/ViewStudentListAction.do","",cookies,userType,"");
+                final int idIndex = parser.parseStudentInfoIndex(studentId,chooseUser);
                 String studentInfoLocID = "";
                 if(idIndex != -1){
-                    studentInfoLocID = parser.parseStudentInfoLocID(idIndex,response);
+                    studentInfoLocID = parser.parseStudentInfoLocID(idIndex,chooseUser);
                 }
                 else{
                     System.out.println("No student found with supplied student id!");
                     return LOGIN_ERR;
                 }
                 //TODO Hardcoded user index 0 for now
-                postPageHTTPS("my-teamsselfserve.austinisd.org", "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
+                postPageHTTPS(userType.teamsHost(), "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
                         "Cookie: " + cookies,
                         "Accept: */*",
                         "User-Agent: QHAC"
@@ -123,11 +126,72 @@ public class TEAMSGradeRetriever {
 	}
 	public static String getTEAMSPage(final String path,
 			final String gradeBookKey, String cookie, final TEAMSUserType userType, String userIdentification) throws IOException {
-        return postPageHTTPS(userType.teamsHost(), path, new String[]{
-                "Cookie: " + cookie,
-        }, gradeBookKey + userIdentification);
+        //return getPageHTTPS(userType.teamsHost(), path, cookie);
+//        postPageHTTPS(userType.teamsHost(), path, new String[]{
+//                "Cookie: " + cookie,
+//        }, gradeBookKey + userIdentification);
+
+        return postPageHTTPSNew(userType.teamsHost(), path, new String[][]{{"Cookie",cookie}},gradeBookKey+userIdentification);
     }
-	
+	public static String getPageHTTPS(final String host, final String path, final String finalcookie){
+        URL url = null;
+        try {
+            url = new URL("https://" + host+path);
+            URLConnection conn = url.openConnection();
+
+            // Set the cookie value to send
+            conn.setRequestProperty("Cookie", finalcookie);
+            // Send the request to the server
+            conn.connect();
+            InputStream is = conn.getInputStream();
+            String parsedString = convertinputStreamToString(is);
+            return parsedString;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public static String postPageHTTPSNew(final String host, final String path, final String[][] headers, final String post){
+        try {
+            byte[] postData = post.getBytes(Charset.forName("UTF-8"));
+            int postDataLength = postData.length;
+            String type = "application/x-www-form-urlencoded";
+            String request = "https://" + host+path;
+            URL url = new URL(request);
+
+            HttpURLConnection  conn = (HttpURLConnection) url.openConnection();
+            for (String[] s: headers){
+                conn.setRequestProperty(s[0], s[1]);
+            }
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setInstanceFollowRedirects(false);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("charset", "utf-8");
+            conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+            conn.setUseCaches(false);
+            try{
+                DataOutputStream wr = new DataOutputStream( conn.getOutputStream());
+                wr.write( postData );
+            }
+            catch (Exception e){}
+            Reader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            StringBuilder response = new StringBuilder();
+            final char[] buffer = new char[1024];
+            int len = 0;
+            while ((len = reader.read(buffer)) > 0) {
+                response.append(buffer, 0, len);
+                if (response.length() >= 4 && response.substring(response.length() - 4).equals("\r\n\r\n")) {
+                    break;
+                }
+            }
+            return response.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 	public static String postPageHTTPS(final String host, final String path, final String[] headers, final String postData) throws  IOException {
 		final Socket socket = SSLSocketFactory.getDefault().createSocket(host,
 				443);
@@ -158,27 +222,12 @@ public class TEAMSGradeRetriever {
 					break;
 				}
 			}
-	
 			return response.toString();
 		} finally {
 			socket.close();
 		}
 		
 	}
-    public static String getHttpPage(String urlin) throws IOException {
-        URL url = new URL(urlin);
-        URLConnection conn = url.openConnection();
-
-        HttpURLConnection httpConn = (HttpURLConnection) conn;
-        httpConn.setAllowUserInteraction(false);
-        httpConn.setInstanceFollowRedirects(true);
-        httpConn.setRequestMethod("GET");
-        httpConn.connect();
-
-        InputStream is = httpConn.getInputStream();
-        return convertinputStreamToString(is);
-
-    }
     public static String convertinputStreamToString(InputStream ists)
             throws IOException {
         if (ists != null) {

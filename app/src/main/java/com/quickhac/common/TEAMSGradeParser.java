@@ -68,7 +68,6 @@ public class TEAMSGradeParser {
 	public Course[] parseAverages(final String html) {
 		// set up DOM for parsing
 		final Document doc = Jsoup.parse(html);
-
 		// Define Grade/Metadata Table
 		final Element $metadataTable = doc.getElementById("finalTablebotLeft1")
 				.getElementById("tableHeaderTable");
