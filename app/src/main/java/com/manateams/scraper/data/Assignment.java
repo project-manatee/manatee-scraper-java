@@ -1,6 +1,6 @@
-package com.quickhac.common.data;
+package com.manateams.scraper.data;
 
-import com.quickhac.common.util.Numeric;
+import com.manateams.scraper.util.Numeric;
 
 public class Assignment {
 	

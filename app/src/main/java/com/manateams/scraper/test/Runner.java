@@ -1,16 +1,14 @@
-package com.quickhac.common.test;
-import java.io.Console;
+package com.manateams.scraper.test;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Scanner;
 
-import com.quickhac.common.TEAMSGradeParser;
-import com.quickhac.common.TEAMSGradeRetriever;
-import com.quickhac.common.data.ClassGrades;
-import com.quickhac.common.data.Course;
-import com.quickhac.common.districts.TEAMSUserType;
-import com.quickhac.common.districts.impl.AustinISDParent;
-import com.quickhac.common.districts.impl.AustinISDStudent;
+import com.manateams.scraper.TEAMSGradeParser;
+import com.manateams.scraper.TEAMSGradeRetriever;
+import com.manateams.scraper.data.ClassGrades;
+import com.manateams.scraper.data.Course;
+import com.manateams.scraper.districts.TEAMSUserType;
+import com.manateams.scraper.districts.impl.AustinISDParent;
+import com.manateams.scraper.districts.impl.AustinISDStudent;
 
 public class Runner {
 	public static void main(String args[]) throws IOException {

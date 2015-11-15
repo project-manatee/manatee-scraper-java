@@ -1,4 +1,4 @@
-package com.quickhac.common.util;
+package com.manateams.scraper.util;
 
 /**
  * Utility functions for dealing with names.

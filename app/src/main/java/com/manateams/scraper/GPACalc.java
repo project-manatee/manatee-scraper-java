@@ -1,11 +1,11 @@
-package com.quickhac.common;
+package com.manateams.scraper;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import com.quickhac.common.data.Course;
-import com.quickhac.common.data.GradeValue;
-import com.quickhac.common.util.Numeric;
+import com.manateams.scraper.data.Course;
+import com.manateams.scraper.data.GradeValue;
+import com.manateams.scraper.util.Numeric;
 
 public class GPACalc {
 	

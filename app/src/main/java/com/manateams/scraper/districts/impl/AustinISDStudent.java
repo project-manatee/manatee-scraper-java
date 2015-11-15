@@ -1,11 +1,12 @@
-package com.quickhac.common.districts.impl;
+package com.manateams.scraper.districts.impl;
 
-import com.quickhac.common.districts.TEAMSUserType;
+import com.manateams.scraper.districts.TEAMSUserType;
 
 /**
  * Created by ehsan on 10/21/14.
  */
-public class AustinISDParent implements TEAMSUserType {
+public class AustinISDStudent implements TEAMSUserType {
+
     @Override
     public String teamsHost() {
         return "grades.austinisd.org";
@@ -13,6 +14,6 @@ public class AustinISDParent implements TEAMSUserType {
 
     @Override
     public boolean isParent() {
-        return true;
+        return false;
     }
 }

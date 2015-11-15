@@ -1,4 +1,4 @@
-package com.quickhac.common;
+package com.manateams.scraper;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -19,9 +19,9 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.jsoup.nodes.Element;
 
-import com.quickhac.common.data.ClassGrades;
-import com.quickhac.common.data.Course;
-import com.quickhac.common.districts.TEAMSUserType;
+import com.manateams.scraper.data.ClassGrades;
+import com.manateams.scraper.data.Course;
+import com.manateams.scraper.districts.TEAMSUserType;
 
 public class TEAMSGradeRetriever {
     final public static String LOGIN_ERR = null;

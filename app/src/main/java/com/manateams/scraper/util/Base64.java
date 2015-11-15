@@ -1,4 +1,4 @@
-package com.quickhac.common.util;
+package com.manateams.scraper.util;
 
 public class Base64 {
 	

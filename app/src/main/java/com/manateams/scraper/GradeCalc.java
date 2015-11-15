@@ -1,14 +1,14 @@
-package com.quickhac.common;
+package com.manateams.scraper;
 
 import java.util.List;
 import java.util.ArrayList;
 
-import com.quickhac.common.data.Assignment;
-import com.quickhac.common.data.Category;
-import com.quickhac.common.data.ClassGrades;
-import com.quickhac.common.data.GradeValue;
-import com.quickhac.common.data.Semester;
-import com.quickhac.common.util.Numeric;
+import com.manateams.scraper.data.Assignment;
+import com.manateams.scraper.data.Category;
+import com.manateams.scraper.data.ClassGrades;
+import com.manateams.scraper.data.GradeValue;
+import com.manateams.scraper.data.Semester;
+import com.manateams.scraper.util.Numeric;
 
 // Beware! These functions will return null if there is nothing to calculate.
 // Make sure to handle nulls in your code when you call these functions.

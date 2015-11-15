@@ -1,4 +1,4 @@
-package com.quickhac.common.data;
+package com.manateams.scraper.data;
 
 public class StudentInfo {
 	

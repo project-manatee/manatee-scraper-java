@@ -1,8 +1,8 @@
-package com.quickhac.common.data;
+package com.manateams.scraper.data;
 
 import java.util.HashMap;
 
-import com.quickhac.common.util.Numeric;
+import com.manateams.scraper.util.Numeric;
 
 public class GradeValue {
 	

@@ -1,4 +1,4 @@
-package com.quickhac.common.util;
+package com.manateams.scraper.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
