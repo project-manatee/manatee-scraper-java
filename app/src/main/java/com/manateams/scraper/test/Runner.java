@@ -19,42 +19,18 @@ public class Runner {
         final String AISDpass = scan.next();
         System.out.println("Enter a student id");
         final String AISDstudentid = scan.next();
-        final TEAMSUserType userType;
-        if (AISDuser.matches("^[sS]\\d{6,8}\\d?$")) {
-            userType = new AustinISDStudent();
-        } else {
-            userType = new AustinISDParent();
-        }
 
-		//////////////////////////////
-		
-		final TEAMSGradeParser p = new TEAMSGradeParser();
-		
-		//Get cookies
-		final String cstonecookie = TEAMSGradeRetriever.getAustinisdCookie(AISDuser, AISDpass);
-		final String teamscookie = TEAMSGradeRetriever.getTEAMSCookie(cstonecookie, userType);
-		
-		//Generate final cookie
-		final String finalcookie = teamscookie + ';' + cstonecookie;
-		
-		//POST to login to TEAMS
-		String userIdentification = TEAMSGradeRetriever.postTEAMSLogin(AISDuser,AISDpass,AISDstudentid,finalcookie, userType);
-		
-		//Get "Report Card"
-		final String averageHtml = TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", finalcookie, userType, userIdentification);
-		final Course[] studentCourses = p.parseAverages(averageHtml);
-		ClassGrades c = TEAMSGradeRetriever.getCycleClassGrades(studentCourses[0], 0, averageHtml, finalcookie, userType, userIdentification);
-        System.out.println(studentCourses[0].title);
+        final TEAMSGradeRetriever retriever = new TEAMSGradeRetriever();
+        final TEAMSGradeParser parser = new TEAMSGradeParser();
+
+
+        final TEAMSUserType userType = retriever.getUserType(AISDuser);
+        final String cookie = retriever.getNewCookie(AISDuser, AISDpass, userType);
+        final String userIdentification = retriever.postTEAMSLogin(AISDuser, AISDpass, AISDstudentid, cookie, userType);
+        final String averageHtml = retriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", cookie, userType, userIdentification);
+        final Course[] courses = parser.parseAverages(averageHtml);
+        System.out.println(courses[0].title);
+        ClassGrades c = retriever.getCycleClassGrades(courses[0], 0, averageHtml, cookie, userType, userIdentification);
         System.out.println(c.average);
-//		/*Logic to get ClassGrades. TEAMS looks for a post request with the "A" tag id of a specific grade selected,
-//		 * so we iterate through all the a tags we got above and send/store the parsed result one by one*/
-//		final ArrayList<ClassGrades> classGrades = new ArrayList<ClassGrades>();
-//		final Elements avalues = Jsoup.parse(averageHtml).getElementById("finalTablebottomRight1").getElementsByTag("a");
-//		for (Element e: avalues) {
-//			if (Numeric.isNumeric(e.text())) {
-//				String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(e.id(), "UTF-8");
-//				classGrades.add( p.parseClassGrades(TEAMSGradeRetriever.getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, finalcookie), "", 0, 0));
-//			}
-//		}
 	}
 }
