@@ -47,9 +47,8 @@ public class TEAMSGradeRetriever {
 
     @Nullable
     public String getNewCookie(final String username, final String password, final TEAMSUserType userType) {
-        final String cStoneCookie;
         try {
-            cStoneCookie = getAISDCookie(username, password);
+            final String cStoneCookie = getAISDCookie(username, password);
             final String TEAMSCookie = getTEAMSCookie(cStoneCookie, userType);
             return cStoneCookie + ';' + TEAMSCookie;
         } catch (IOException e) {
@@ -230,7 +229,7 @@ public class TEAMSGradeRetriever {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
             final char[] buffer = new char[1024];
-            int len = 0;
+            int len;
             while ((len = reader.read(buffer)) > 0) {
                 response.append(buffer, 0, len);
                 if (response.length() >= 4 && response.substring(response.length() - 4).equals("\r\n\r\n")) {
