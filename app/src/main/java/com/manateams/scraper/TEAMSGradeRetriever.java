@@ -2,6 +2,7 @@ package com.manateams.scraper;
 
 import android.support.annotation.Nullable;
 
+import com.github.kevinsawicki.http.HttpRequest;
 import com.manateams.scraper.data.ClassGrades;
 import com.manateams.scraper.data.Course;
 import com.manateams.scraper.districts.TEAMSUserType;
@@ -83,7 +84,7 @@ public class TEAMSGradeRetriever {
     public String getTEAMSPage(final String path, final String gradeBookKey, final String cookie, final TEAMSUserType userType, final String userIdentification) throws IOException {
         final HashMap<String, String> data = new HashMap<>();
         data.put("Cookie", cookie);
-        return doPOSTRequest("https://" + userType.teamsHost() + path, data, gradeBookKey + userIdentification);
+        return doPOSTRequest(userType.teamsHost() + path, data, gradeBookKey + userIdentification);
     }
 
     /*
@@ -92,13 +93,13 @@ public class TEAMSGradeRetriever {
     public String postTEAMSLogin(final String username, final String password, final String studentID, final String cookie, final TEAMSUserType userType) throws IOException {
         final String query = "userLoginId=" + URLEncoder.encode(username, "UTF-8") + "&userPassword=" + URLEncoder.encode(password, "UTF-8");
 
-        final String[] headers = new String[]{
-                "Cookie: " + cookie,
-                "Accept: */*",
-                "User-Agent: QHAC"
-        };
+        final HashMap<String,String> headers = new HashMap<String,String>();
+        headers.put("Cookie", cookie);
+        headers.put("Accept", "*/*");
+        headers.put("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36");
 
-        doRawPOSTRequest(userType.teamsHost(), "/selfserve/SignOnLoginAction.do", headers, query);
+
+        doPOSTRequest(userType.teamsHost() + "/selfserve/SignOnLoginAction.do", headers, query);
 
         if (userType.isParent()) {
             try {
@@ -110,12 +111,13 @@ public class TEAMSGradeRetriever {
                 } else {
                     return null;
                 }
+                final HashMap<String,String> headers2 = new HashMap<String,String>();
+                headers2.put("Cookie", cookie);
+                headers2.put("Accept", "*/*");
+                headers2.put("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36");
+
                 //TODO Hardcoded user index 0 for now
-                doRawPOSTRequest(userType.teamsHost(), "/selfserve/ViewStudentListChangeTabDisplayAction.do", new String[]{
-                        "Cookie: " + cookie,
-                        "Accept: */*",
-                        "User-Agent: QHAC"
-                }, "selectedIndexId=" + idIndex + "&studentLocId=" + studentInfoLocID + "&selectedTable=table");
+                doPOSTRequest(userType.teamsHost()+"/selfserve/ViewStudentListChangeTabDisplayAction.do",headers2, "selectedIndexId=" + idIndex + "&studentLocId=" + studentInfoLocID + "&selectedTable=table");
                 return "&selectedIndexId=" + idIndex + "&studentLocId=" + studentInfoLocID + "&selectedTable=table";
             } catch (IOException e) {
                 return null;
@@ -128,13 +130,12 @@ public class TEAMSGradeRetriever {
     private String getAISDCookie(final String username, final String password) throws IOException {
         final String rawQuery = "cn=" + username + "&[password]=" + password;
         final String query = URLEncoder.encode(rawQuery, "UTF-8");
+        final HashMap<String,String> headers = new HashMap<String,String>();
+        headers.put("Accept", "*/*");
+        headers.put("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36");
 
-        final String[] headers = new String[]{
-                "User-Agent: QHAC",
-                "Accept: */*"
-        };
 
-        final String response = doRawPOSTRequest("my.austinisd.org", "/WebNetworkAuth/", headers, query);
+        final String response = doPOSTRequest("https://my.austinisd.org/WebNetworkAuth/", headers, query);
 
         for (final String line : response.split("\n")) {
             if (line.startsWith("Set-Cookie: CStoneSessionID=")) {
@@ -146,13 +147,13 @@ public class TEAMSGradeRetriever {
     }
 
     private String getTEAMSCookie(final String AISDCookie, final TEAMSUserType userType) throws IOException {
-        final String[] headers = new String[]{
-                "Cookie: " + AISDCookie,
-                "Accept: */*",
-                "User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
-        };
+        final HashMap<String,String> headers = new HashMap<String,String>();
+        headers.put("Cookie", AISDCookie);
+        headers.put("Accept", "*/*");
+        headers.put("User-Agent","User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36");
 
-        final String response = doRawPOSTRequest(userType.teamsHost(), "/selfserve/EntryPointSignOnAction.do?parent=" + userType.isParent(), headers, "");
+
+        final String response = doPOSTRequest(userType.teamsHost()+ "/selfserve/EntryPointSignOnAction.do?parent=" + userType.isParent(), headers, "");
 
         for (final String line : response.split("\n")) {
             if (line.startsWith("Set-Cookie: JSESSIONID=")) {
@@ -164,81 +165,10 @@ public class TEAMSGradeRetriever {
     }
 
     private String doPOSTRequest(final String url, final HashMap<String, String> headers, final String data) {
-        try {
-            final URL requestUrl = new URL(url);
-
-            final HttpURLConnection connection = (HttpURLConnection) requestUrl.openConnection();
-
-            for (final String header : headers.keySet()) {
-                connection.setRequestProperty(header, headers.get(header));
-            }
-
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setDoInput(true);
-            connection.setInstanceFollowRedirects(false);
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestProperty("charset", "utf-8");
-            connection.setUseCaches(false);
-
-            final byte[] postData = data.getBytes(Charset.forName("UTF-8"));
-            connection.setRequestProperty("Content-Length", Integer.toString(postData.length));
-
-            final DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-            outputStream.write(postData);
-
-            final Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
-            final StringBuilder response = new StringBuilder();
-            final char[] buffer = new char[1024];
-            int len;
-            while ((len = reader.read(buffer)) > 0) {
-                response.append(buffer, 0, len);
-                if (response.length() >= 4 && response.substring(response.length() - 4).equals("\r\n\r\n")) {
-                    break;
-                }
-            }
-
-            return response.toString();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        HttpRequest request =  HttpRequest.post(url);
+        request.headers(headers);
+        String str = request.send(data).body();
+        return str;
     }
 
-    private String doRawPOSTRequest(final String host, final String path, final String[] headers, final String postData) throws IOException {
-        final Socket socket = SSLSocketFactory.getDefault().createSocket(host,
-                443);
-        try {
-            final PrintWriter writer = new PrintWriter(new OutputStreamWriter(
-                    socket.getOutputStream()));
-            writer.println("POST " + path + " HTTP/1.1");
-            writer.println("Host: " + host);
-            for (String header : headers) {
-                writer.println(header);
-            }
-            writer.println("Content-Length: " + postData.length());
-            writer.println("Content-Type: application/x-www-form-urlencoded");
-            writer.println();
-            writer.println(postData);
-            writer.println();
-            writer.flush();
-
-            StringBuilder response = new StringBuilder();
-
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    socket.getInputStream()));
-            final char[] buffer = new char[1024];
-            int len;
-            while ((len = reader.read(buffer)) > 0) {
-                response.append(buffer, 0, len);
-                if (response.length() >= 4 && response.substring(response.length() - 4).equals("\r\n\r\n")) {
-                    break;
-                }
-            }
-            return response.toString();
-        } finally {
-            socket.close();
-        }
-    }
 }
