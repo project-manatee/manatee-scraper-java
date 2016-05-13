@@ -1,5 +1,7 @@
 package com.manateams.scraper;
 
+import android.util.Log;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -354,14 +356,14 @@ public class TEAMSGradeParser {
     Assignment parseAssignment(final Element $row, final boolean is100Pt,
                                final String catId) {
         Elements $cells = $row.getElementsByTag("td");
-        // Format - 0= Title 1= pts earned 2=Assign Date 3= Due Date 4 = scale 5=Max Val 6=Count 7=Note
+        // Format - 0= Title 1= pts earned 2=Dropped 3=Assign Date 4=Due Date 5=scale 6=Max Val 7=Count 8=Note
         final String title = $cells.get(0).text();
-        final String dateDue = $cells.get(3).text();
-        final String dateAssigned = $cells.get(2).text();
+        final String dateDue = $cells.get(4).text();
+        final String dateAssigned = $cells.get(3).text();
         //TODO: Very weird that we have to catch an exception here... but sometimes array length is only 7
         String note = "";
         try {
-            note = $cells.get(7).text();
+            note = $cells.get(8).text();
         } catch (Exception e) {
             note = "";
         }
@@ -375,7 +377,7 @@ public class TEAMSGradeParser {
         //TODO: Very weird that we have to catch an exception here... but sometimes cell value is "100 2000"
         int ptsPossNum = 100;
         try {
-            ptsPossNum = Integer.parseInt($cells.get(4).text());
+            ptsPossNum = Integer.parseInt($cells.get(5).text());
         } catch (Exception e) {
             ptsPossNum = 100;
         }
@@ -441,6 +443,7 @@ public class TEAMSGradeParser {
         assignment.weight = weight;
         assignment.note = note;
         assignment.extraCredit = extraCredit;
+        System.out.println(title + " " + grade + " " + ptsPossNum);
         return assignment;
     }
 
