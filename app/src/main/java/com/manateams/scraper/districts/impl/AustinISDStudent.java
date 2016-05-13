@@ -9,7 +9,7 @@ public class AustinISDStudent implements TEAMSUserType {
 
     @Override
     public String teamsHost() {
-        return "https://grades.austinisd.org";
+        return "grades.austinisd.org";
     }
 
     @Override
