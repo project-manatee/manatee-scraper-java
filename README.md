@@ -1,14 +1,15 @@
-Manatee-Scraper
+manaTEAMS Java Scraper
 =============
 
-A project to scrape the TEAMS gradebook system.
+This is a project to scrape the TEAMS gradebook system.
 
-This work is licensed under the [GPL v3 License](http://choosealicense.com/licenses/gpl-v3/). See license file for full text.   
+This work is licensed under the [GPL v3 License](http://choosealicense.com/licenses/gpl-v3/). See license file for full text.
+
 Copyright (C) 2014 Ehsan Asdar and Neil Patil
 
-## QuickHAC License
+This project is based heavily on the QuickHAC-common library. License follows.
 
-Original source from the [qhac-common](https://github.com/quickhac/qhac-common) library. License follows:
+## QuickHAC License
 
 Copyright (c) 2014, Xuming Zeng.
 All rights reserved.
