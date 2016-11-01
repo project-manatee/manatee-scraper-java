@@ -7,13 +7,20 @@ import com.manateams.scraper.data.Course;
 import com.manateams.scraper.districts.TEAMSUserType;
 import com.manateams.scraper.districts.impl.AustinISDParent;
 import com.manateams.scraper.districts.impl.AustinISDStudent;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 import org.jsoup.nodes.Element;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -71,13 +78,15 @@ public class TEAMSGradeRetriever {
         return null;
     }
 
-    public ClassGrades getCycleClassGrades(Course course, int cycle, String averagesHtml, String cookies, final TEAMSUserType userType, String userIdentification) throws  IOException{
-        TEAMSGradeParser parser = new TEAMSGradeParser();
-        Element coursehtmlnode = parser.getCourseElement(averagesHtml,course,cycle);
-        String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").get(0).id(), "UTF-8");
-        String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookies, userType, userIdentification);
+    public ClassGrades getCycleClassGrades(Course course, int cycle, String cookie, final TEAMSUserType userType, String userIdentification) throws  IOException{
+        final TEAMSGradeParser parser = new TEAMSGradeParser();
+        final String averageHtml = getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", cookie, userType, userIdentification);
+
+        final Element coursehtmlnode = parser.getCourseElement(averageHtml,course,cycle);
+        final String gradeBookKey = "selectedIndexId=-1&smartFormName=SmartForm&gradeBookKey=" + URLEncoder.encode(coursehtmlnode.getElementsByTag("a").get(0).id(), "UTF-8");
+        final String coursehtml = getTEAMSPage("/selfserve/PSSViewGradeBookEntriesAction.do", gradeBookKey, cookie, userType, userIdentification);
         //TODO hardcoded number of cycles
-        return parser.parseClassGrades(coursehtml, course.courseId, cycle < 3 ? 0:1  , cycle);
+        return parser.parseClassGrades(coursehtml, course.courseId, cycle < 3 ? 0 : 1, cycle);
     }
 
     public String getTEAMSPage(final String path, final String gradeBookKey, final String cookie, final TEAMSUserType userType, final String userIdentification) throws IOException {
@@ -164,46 +173,25 @@ public class TEAMSGradeRetriever {
     }
 
     private String doPOSTRequest(final String url, final HashMap<String, String> headers, final String data) {
+        final OkHttpClient client = new OkHttpClient();
+        final MediaType type = MediaType.parse("application/x-www-form-urlencoded; charset=utf-8");
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("User-Agent", "OkHttp Headers.java")
+                .addHeader("Cookie", headers.get("Cookie"))
+                .post(RequestBody.create(type, data))
+                .build();
+
+        String responseString = null;
         try {
-            final URL requestUrl = new URL(url);
-
-            final HttpURLConnection connection = (HttpURLConnection) requestUrl.openConnection();
-
-            for (final String header : headers.keySet()) {
-                connection.setRequestProperty(header, headers.get(header));
-            }
-
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setDoInput(true);
-            connection.setInstanceFollowRedirects(false);
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestProperty("charset", "utf-8");
-            connection.setUseCaches(false);
-
-            final byte[] postData = data.getBytes(Charset.forName("UTF-8"));
-            connection.setRequestProperty("Content-Length", Integer.toString(postData.length));
-
-            final DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-            outputStream.write(postData);
-
-            final Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
-            final StringBuilder response = new StringBuilder();
-            final char[] buffer = new char[1024];
-            int len;
-            while ((len = reader.read(buffer)) > 0) {
-                response.append(buffer, 0, len);
-                if (response.length() >= 4 && response.substring(response.length() - 4).equals("\r\n\r\n")) {
-                    break;
-                }
-            }
-
-            return response.toString();
-
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            responseString = response.body().string();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return responseString;
     }
 
     private String doRawPOSTRequest(final String host, final String path, final String[] headers, final String postData) throws IOException {

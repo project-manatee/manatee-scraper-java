@@ -30,7 +30,7 @@ public class Runner {
         final String averageHtml = retriever.getTEAMSPage("/selfserve/PSSViewReportCardsAction.do", "", cookie, userType, userIdentification);
         final Course[] courses = parser.parseAverages(averageHtml);
         System.out.println(courses[0].title);
-        ClassGrades c = retriever.getCycleClassGrades(courses[0], 0, averageHtml, cookie, userType, userIdentification);
+        ClassGrades c = retriever.getCycleClassGrades(courses[0], 0, cookie, userType, userIdentification);
         System.out.println(c.average);
 	}
 }
