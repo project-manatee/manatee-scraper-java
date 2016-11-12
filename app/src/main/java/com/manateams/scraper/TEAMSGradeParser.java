@@ -404,6 +404,9 @@ public class TEAMSGradeParser {
             } else {
                 weight = 1;
             }
+        } else if (ptsEarned.equals("MSG")){
+            ptsEarnedNum = 0.0;
+            weight = 1;
         } else {
             ptsEarnedNum = Numeric.isNumeric(ptsEarned) ? Double
                     .valueOf(ptsEarned) : null;
