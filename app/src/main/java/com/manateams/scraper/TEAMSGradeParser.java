@@ -357,7 +357,12 @@ public class TEAMSGradeParser {
                                final String catId) {
         Elements $cells = $row.getElementsByTag("td");
         // Format - 0= Title 1= pts earned 2=Dropped 3=Assign Date 4=Due Date 5=scale 6=Max Val 7=Count 8=Note
-        final String title = $cells.get(0).text();
+        String title = $cells.get(0).text();
+        final String dropped = $cells.get(2).text();
+        if (dropped.equals("Yes")) {
+            title += " (Dropped)";
+        }
+
         final String dateDue = $cells.get(4).text();
         final String dateAssigned = $cells.get(3).text();
         //TODO: Very weird that we have to catch an exception here... but sometimes array length is only 7
