@@ -8,6 +8,14 @@ public class ClassGrades {
 	public int semesterIndex;
 	public int cycleIndex;
 	public int average;
+	public int projectedAverage;
 	public Category[] categories;
+
+	public boolean hasProjected() {
+		for (Category c : categories) {
+			if (c.hasProjected()) return true;
+		}
+		return false;
+	}
 
 }

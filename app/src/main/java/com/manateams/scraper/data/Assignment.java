@@ -13,6 +13,7 @@ public class Assignment {
 	public double weight;
 	public String note;
 	public boolean extraCredit;
+	public boolean isProjected;
 	
 	public String pointsString() {
 		if ( ptsEarned == null || ptsEarned.value == -1)

@@ -61,7 +61,9 @@ public class GradeCalc {
 		// get all categories with an average
 		final List<Category> filteredCategories = new ArrayList<Category>(cycle.categories.length);
 		for (int i = 0; i < cycle.categories.length; i++)
-			if (cycle.categories[i].average != null)
+			if (cycle.categories[i].projectedAverage != null)
+				filteredCategories.add(cycle.categories[i]);
+			else if (cycle.categories[i].average != null)
 				filteredCategories.add(cycle.categories[i]);
 		
 		// take the weighted average of categories
@@ -69,7 +71,12 @@ public class GradeCalc {
 		double weights = 0;
 		
 		for (Category cat : filteredCategories) {
-			weightedTotal += cat.average * cat.weight;
+			if (cat.projectedAverage != null) {
+				weightedTotal += cat.projectedAverage * cat.weight;
+			}
+			else {
+				weightedTotal += cat.average * cat.weight;
+			}
 			weights += cat.weight;
 		}
 		
@@ -98,7 +105,7 @@ public class GradeCalc {
 			if (!assignments[i].extraCredit &&
 					assignments[i].ptsEarned != null &&
 					assignments[i].ptsEarned.type == GradeValue.TYPE_DOUBLE &&
-					!assignments[i].note.contains("(Dropped)"))
+					!assignments[i].title.contains("(Dropped)"))
 				filteredAssignments.add(assignments[i]);
 		
 		// take the weighted average
@@ -106,7 +113,7 @@ public class GradeCalc {
 		double weights = 0;
 		
 		for (Assignment a : filteredAssignments) {
-			weightedTotal += a.ptsEarned.value_d * 100 * a.weight / a.ptsPossible;
+			weightedTotal += a.ptsEarned.value_d * a.weight;
 			weights += a.weight;
 		}
 		
